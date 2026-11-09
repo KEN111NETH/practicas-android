@@ -6,206 +6,140 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.practicas_android.ui.theme.PracticasandroidTheme
 
-data class Tarea(
-    val id: Int,
-    val nombre: String,
-    val prioridad: String,
-    val completada: Boolean = false
-)
-
 @Composable
-fun TareasScreen() {
-    val tareas = remember { mutableStateListOf<Tarea>() }
+fun LoginScreen() {
+    var correo by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var recordar by remember { mutableStateOf(false) }
+    var mostrarPassword by remember { mutableStateOf(false) }
+    var intentos by remember { mutableIntStateOf(0) }
+    var sesionIniciada by remember { mutableStateOf(false) }
+    var mensaje by remember { mutableStateOf("") }
 
-    var nombre by remember { mutableStateOf("") }
-    var prioridad by remember { mutableStateOf("Media") }
-    var filtro by remember { mutableStateOf("Todas") }
-    var mostrarDialogo by remember { mutableStateOf(false) }
-    var siguienteId by remember { mutableIntStateOf(0) }
-
-    val tareasFiltradas = when (filtro) {
-        "Pendientes" -> tareas.filter { !it.completada }
-        "Hechas" -> tareas.filter { it.completada }
-        else -> tareas.toList()
-    }
-
-    val pendientes = tareas.count { !it.completada }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
-        Text("Gestor de tareas", fontSize = 28.sp)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = nombre,
-            onValueChange = { nombre = it },
-            label = { Text("Nombre de la tarea") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        Text("Prioridad")
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+    if (sesionIniciada) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            listOf("Alta", "Media", "Baja").forEach {
-                FilterChip(
-                    selected = prioridad == it,
-                    onClick = { prioridad = it },
-                    label = { Text(it) }
-                )
-            }
-        }
+            Text("¡Bienvenido a Clínica Vida!", fontSize = 26.sp)
 
-        Button(
-            onClick = {
-                if (nombre.isNotBlank()) {
-                    tareas.add(
-                        Tarea(
-                            id = siguienteId++,
-                            nombre = nombre.trim(),
-                            prioridad = prioridad
-                        )
-                    )
-                    nombre = ""
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Sesión iniciada con: $correo")
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    correo = ""
+                    password = ""
+                    recordar = false
+                    intentos = 0
+                    mensaje = ""
+                    sesionIniciada = false
                 }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = nombre.isNotBlank()
-        ) {
-            Text("Agregar tarea")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Filtros")
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            listOf("Todas", "Pendientes", "Hechas").forEach {
-                FilterChip(
-                    selected = filtro == it,
-                    onClick = { filtro = it },
-                    label = { Text(it) }
-                )
+            ) {
+                Text("Cerrar sesión")
             }
         }
-
-        Text(
-            "$pendientes pendientes de ${tareas.size}",
-            fontSize = 18.sp
-        )
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
-
-        LazyColumn(
-            modifier = Modifier.weight(1f)
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            itemsIndexed(
-                tareasFiltradas,
-                key = { _, tarea -> tarea.id }
-            ) { _, tarea ->
+            Text("Clínica Vida", fontSize = 30.sp)
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = tarea.completada,
-                        onCheckedChange = { marcada ->
-                            val posicion = tareas.indexOfFirst {
-                                it.id == tarea.id
-                            }
+            Text("Inicio de sesión", fontSize = 20.sp)
 
-                            if (posicion != -1) {
-                                tareas[posicion] = tarea.copy(
-                                    completada = marcada
-                                )
-                            }
-                        }
-                    )
+            Spacer(modifier = Modifier.height(24.dp))
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = tarea.nombre,
-                            color = if (tarea.completada)
-                                MaterialTheme.colorScheme.outline
-                            else
-                                MaterialTheme.colorScheme.onSurface
-                        )
+            OutlinedTextField(
+                value = correo,
+                onValueChange = { correo = it },
+                label = { Text("Correo electrónico") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
 
-                        Text(
-                            "Prioridad: ${tarea.prioridad}",
-                            fontSize = 12.sp
-                        )
+            Spacer(modifier = Modifier.height(12.dp))
 
-                        if (tarea.completada) {
-                            Text("Completada", fontSize = 12.sp)
-                        }
-                    }
-
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Contraseña") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                visualTransformation = if (mostrarPassword)
+                    VisualTransformation.None
+                else
+                    PasswordVisualTransformation(),
+                trailingIcon = {
                     TextButton(
-                        onClick = { tareas.remove(tarea) }
+                        onClick = { mostrarPassword = !mostrarPassword }
                     ) {
-                        Text("Eliminar")
+                        Text(if (mostrarPassword) "Ocultar" else "Mostrar")
                     }
                 }
+            )
 
-                HorizontalDivider()
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = recordar,
+                    onCheckedChange = { recordar = it }
+                )
+                Text("Recordarme")
             }
-        }
 
-        OutlinedButton(
-            onClick = { mostrarDialogo = true },
-            enabled = tareas.any { it.completada },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Borrar tareas completadas")
-        }
-    }
+            if (mensaje.isNotEmpty()) {
+                Text(
+                    text = mensaje,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
 
-    if (mostrarDialogo) {
-        AlertDialog(
-            onDismissRequest = { mostrarDialogo = false },
-            title = { Text("Confirmar eliminación") },
-            text = { Text("¿Quieres borrar todas las tareas completadas?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        tareas.removeAll { it.completada }
-                        mostrarDialogo = false
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = {
+                    if (correo == "paciente@vida.mx" &&
+                        password == "Vida2025"
+                    ) {
+                        sesionIniciada = true
+                        mensaje = ""
+                    } else {
+                        intentos++
+                        mensaje = if (intentos >= 3) {
+                            "Cuenta bloqueada. Demasiados intentos."
+                        } else {
+                            "Datos incorrectos. Intento $intentos de 3."
+                        }
                     }
-                ) {
-                    Text("Eliminar")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { mostrarDialogo = false }
-                ) {
-                    Text("Cancelar")
-                }
+                },
+                enabled = intentos < 3,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Iniciar sesión")
             }
-        )
+        }
     }
 }
 
@@ -215,7 +149,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PracticasandroidTheme {
-                TareasScreen()
+                LoginScreen()
             }
         }
     }
@@ -223,8 +157,8 @@ class MainActivity : ComponentActivity() {
 
 @Preview(showBackground = true)
 @Composable
-fun TareasPreview() {
+fun LoginPreview() {
     PracticasandroidTheme {
-        TareasScreen()
+        LoginScreen()
     }
 }
